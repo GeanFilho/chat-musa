@@ -13,7 +13,6 @@
     --bot-bubble:#ffffff;
   }
 
-  /* Remove margens globais */
   body, html {
     margin:0;
     padding:0;
@@ -24,17 +23,16 @@
     font-family: Arial, sans-serif;
   }
 
-  /* Container principal responsivo */
+  /* AGORA O APP OCUPA 100% EM QUALQUER TELA */
   .app {
     display:flex;
     flex-direction:column;
     height:100vh;
-    max-height:100vh;
-    width:100%;
-    max-width:100%;
+    width:100vw;
+    overflow:hidden;
   }
 
-  /* Header fixo */
+  /* Header */
   .header {
     background:var(--bg-header);
     height:70px;
@@ -55,7 +53,7 @@
     object-fit:cover;
   }
 
-  /* Área do chat 100% flexível */
+  /* Chat ocupa o resto da tela */
   .chat {
     flex:1;
     background:var(--bg-chat);
@@ -66,7 +64,6 @@
     width:100%;
   }
 
-  /* Scroll mais bonito */
   .chat::-webkit-scrollbar {
     width:6px;
   }
@@ -76,7 +73,7 @@
   }
 
   .bubble {
-    max-width:85vw;
+    max-width:85%;
     padding:11px 15px;
     border-radius:14px;
     margin-bottom:12px;
@@ -87,23 +84,16 @@
     word-wrap:break-word;
   }
 
-  .from-user {
-    background:var(--user-bubble);
-    align-self:flex-end;
-  }
-  .from-bot {
-    background:var(--bot-bubble);
-    align-self:flex-start;
-  }
+  .from-user { background:var(--user-bubble); align-self:flex-end; }
+  .from-bot  { background:var(--bot-bubble);  align-self:flex-start; }
 
-  /* Animação digitando */
+  /* Digitando */
   .typing {
     background:white;
     padding:11px 14px;
     border-radius:14px;
     display:flex;
     gap:4px;
-    width:auto;
   }
 
   .dot {
@@ -111,7 +101,7 @@
     height:8px;
     border-radius:50%;
     background:#aaa;
-    animation: pulse 1s infinite ease-in-out;
+    animation:pulse 1s infinite ease-in-out;
   }
   .dot:nth-child(2){ animation-delay:.2s }
   .dot:nth-child(3){ animation-delay:.4s }
@@ -122,7 +112,7 @@
     100%{ transform:scale(1); opacity:.4 }
   }
 
-  /* Footer */
+  /* Footer fixo embaixo */
   .footer {
     background:#f0f0f0;
     padding:10px;
@@ -152,19 +142,8 @@
     font-weight:bold;
     font-size:1rem;
     cursor:pointer;
-    white-space:nowrap;
   }
 
-  /* FULL RESPONSIVE */
-  @media (min-width:900px) {
-    .app {
-      max-width:450px;
-      margin:auto;
-      border-radius:12px;
-      overflow:hidden;
-      box-shadow:0 0 25px rgba(0,0,0,.3);
-    }
-  }
 </style>
 </head>
 
@@ -190,35 +169,31 @@
 </div>
 
 <script>
-// SUA KEY GOOGLE GEMINI (FUNCIONA NO HTML)
 const API_KEY = "AIzaSyBYlGjOt-8z9JBJhaOXDgMDM277uop2JeM";
-const MODEL = "models/gemini-flash-latest";
+const MODEL   = "models/gemini-flash-latest";
 
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
-const send = document.getElementById("send");
+const send  = document.getElementById("send");
 const statusText = document.getElementById("status");
 
-// Memória da Marcela
 let conversation = [
   {
     role:"user",
     content:`Você é Marcela 💋.
-Responda de forma leve, carinhosa, provocante suave, envolvente e sempre respeitosa.
-Use emojis, adapte o clima conforme a conversa, nunca seja explícita.`
+Responda sempre com carinho, leve provocação, suavidade e emojis.
+Nunca explícita. Ajuste o clima conforme a conversa.`
   }
 ];
 
-// Criar bolhas
 function addBubble(text, from){
-  const div = document.createElement("div");
-  div.className = "bubble " + (from==="user"?"from-user":"from-bot");
-  div.textContent = text;
-  chat.appendChild(div);
+  const d = document.createElement("div");
+  d.className = "bubble " + (from==="user"?"from-user":"from-bot");
+  d.textContent = text;
+  chat.appendChild(d);
   chat.scrollTop = chat.scrollHeight;
 }
 
-// Digitando
 function addTyping(){
   const t = document.createElement("div");
   t.className = "typing";
@@ -236,15 +211,12 @@ function removeTyping(){
   if(t) t.remove();
 }
 
-// Chamada ao Gemini
 async function askGemini(){
 
-  const textPayload = conversation.map(c => `${c.role}: ${c.content}`).join("\n");
+  const payload = conversation.map(c => `${c.role}: ${c.content}`).join("\n");
 
   const body = {
-    contents:[
-      { parts:[ { text:textPayload } ] }
-    ]
+    contents:[ { parts:[ { text:payload } ] } ]
   };
 
   const res = await fetch(
@@ -261,11 +233,10 @@ async function askGemini(){
   try {
     return data.candidates[0].content.parts[0].text;
   } catch {
-    return "Hmm... fiquei até sem palavras agora 😅💋";
+    return "Fiquei até sem palavras agora 😅💋";
   }
 }
 
-// Enviar mensagem
 async function handleSend(){
   const text = input.value.trim();
   if(!text) return;
@@ -289,11 +260,10 @@ async function handleSend(){
 send.onclick = handleSend;
 input.onkeydown = e => { if(e.key==="Enter") handleSend(); };
 
-// Mensagem inicial
 setTimeout(()=>{
-  const msg = "Oi… tava pensando em você 👀💋";
-  addBubble(msg,"bot");
-  conversation.push({ role:"assistant", content:msg });
+  const m = "Oi… tava pensando em você 👀💋";
+  addBubble(m,"bot");
+  conversation.push({ role:"assistant", content:m });
 },500);
 
 </script>
