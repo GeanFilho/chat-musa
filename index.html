@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marcela 💋</title>
+
+<style>
+  body {
+    margin:0; padding:0;
+    background:#0d0f14;
+    font-family:Arial, sans-serif;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+
+  .header {
+    background:#111824;
+    height:65px;
+    display:flex; align-items:center;
+    gap:12px; padding:0 16px;
+    color:white; flex-shrink:0;
+    border-bottom:1px solid #1e2633;
+  }
+
+  .header img {
+    width:46px; height:46px;
+    border-radius:50%;
+    background:white; padding:3px;
+  }
+
+  .chat {
+    flex:1;
+    background:#e8dfd7;
+    overflow-y:auto;
+    padding:14px;
+    display:flex; flex-direction:column;
+  }
+
+  .bubble {
+    max-width:80%;
+    padding:10px 13px;
+    border-radius:12px;
+    margin-bottom:10px;
+    white-space:pre-wrap;
+    font-size:15px;
+    line-height:1.4;
+    display:flex;
+    align-items:center;
+  }
+
+  .from-user { background:#dcf8c6; align-self:flex-end; }
+  .from-bot { background:white; align-self:flex-start; }
+
+  /* animação digitando */
+  .typing {
+    background:white;
+    align-self:flex-start;
+    padding:10px 13px;
+    border-radius:12px;
+    display:flex;
+    gap:4px;
+  }
+
+  .dot {
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:#aaa;
+    animation: pulse 1s infinite ease-in-out;
+  }
+
+  .dot:nth-child(2) { animation-delay: .2s; }
+  .dot:nth-child(3) { animation-delay: .4s; }
+
+  @keyframes pulse {
+    0%   { transform:scale(1); opacity:0.4; }
+    50%  { transform:scale(1.4); opacity:1; }
+    100% { transform:scale(1); opacity:0.4; }
+  }
+
+  .footer {
+    height:72px; background:#f0f0f0;
+    padding:10px; display:flex; gap:8px;
+    border-top:1px solid #ccc;
+  }
+
+  .footer input {
+    flex:1; border-radius:999px;
+    border:1px solid #ccc;
+    font-size:15px;
+    padding:0 16px;
+    height:50px;
+  }
+
+  .footer button {
+    width:90px;
+    height:50px;
+    border-radius:999px;
+    border:none;
+    background:#ff4f87;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <img src="download.png"/>
+  <div>
+    <div style="font-size:17px;font-weight:600;">Marcela 💋</div>
+    <div id="status" style="font-size:12px;opacity:.7;">online agora</div>
+  </div>
+</div>
+
+<div class="chat" id="chat"></div>
+
+<div class="footer">
+  <input id="input" placeholder="Digite..." autocomplete="off">
+  <button id="send">Enviar</button>
+</div>
+
+<script>
+// 🔥 SUA API KEY DO GOOGLE GEMINI AQUI:
+const API_KEY = "AIzaSyBYlGjOt-8z9JBJhaOXDgMDM277uop2JeM";
+
+// modelo CORRETO:
+const MODEL = "models/gemini-flash-latest";
+
+const chat = document.getElementById("chat");
+const input = document.getElementById("input");
+const send = document.getElementById("send");
+const statusText = document.getElementById("status");
+
+// memória
+let conversation = [
+  {
+    role:"user",
+    content:`Você é Marcela 💋.  
+Responda sempre de forma suave, carinhosa, divertida, provocante leve mas nunca explícita.  
+Se adapte ao tom da conversa automaticamente.`
+  }
+];
+
+// adicionar mensagem
+function addBubble(text, from) {
+  const div = document.createElement("div");
+  div.className = "bubble " + (from === "user" ? "from-user" : "from-bot");
+  div.textContent = text;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+// animação digitando
+function addTyping() {
+  const t = document.createElement("div");
+  t.className = "typing";
+  t.id = "typingBubble";
+  t.innerHTML = `
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  `;
+  chat.appendChild(t);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById("typingBubble");
+  if (t) t.remove();
+}
+
+// chamada ao Gemini
+async function askGemini() {
+
+  const textPayload =
+    conversation.map(c => `${c.role}: ${c.content}`).join("\n");
+
+  const body = {
+    contents: [
+      {
+        parts: [{ text: textPayload }]
+      }
+    ]
+  };
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/${MODEL}:generateContent?key=${API_KEY}`,
+    {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify(body)
+    }
+  );
+
+  const data = await response.json();
+  console.log(data);
+
+  try {
+    return data.candidates[0].content.parts[0].text;
+  } catch {
+    return "Ah... fiquei meio sem palavras agora 😅💋";
+  }
+}
+
+// envio de mensagem
+async function handleSend() {
+  const text = input.value.trim();
+  if (!text) return;
+
+  addBubble(text, "user");
+  conversation.push({ role:"user", content:text });
+  input.value = "";
+
+  addTyping();
+  statusText.textContent = "digitando…";
+
+  const reply = await askGemini();
+
+  removeTyping();
+  statusText.textContent = "online agora";
+
+  addBubble(reply, "bot");
+  conversation.push({ role:"assistant", content:reply });
+}
+
+send.onclick = handleSend;
+input.onkeydown = e => { if (e.key === "Enter") handleSend(); };
+
+setTimeout(() => {
+  const msg = "Oi... tava pensando em você 👀💋";
+  addBubble(msg, "bot");
+  conversation.push({ role:"assistant", content:msg });
+}, 300);
+</script>
+
+</body>
+</html>
