@@ -23,7 +23,6 @@
     font-family: Arial, sans-serif;
   }
 
-  /* AGORA O APP OCUPA 100% EM QUALQUER TELA */
   .app {
     display:flex;
     flex-direction:column;
@@ -32,18 +31,16 @@
     overflow:hidden;
   }
 
-  /* Header */
   .header {
     background:var(--bg-header);
     height:70px;
-    min-height:70px;
     display:flex;
     align-items:center;
     gap:12px;
     padding:0 16px;
     color:white;
-    flex-shrink:0;
     border-bottom:1px solid #1e2633;
+    flex-shrink:0;
   }
 
   .header img {
@@ -53,20 +50,31 @@
     object-fit:cover;
   }
 
-  /* Chat ocupa o resto da tela */
+  /* WRAPPER DO CHAT (para controlar largura no desktop) */
   .chat {
     flex:1;
-    background:var(--bg-chat);
     overflow-y:auto;
+    background:var(--bg-chat);
     padding:16px;
+  }
+
+  .inner-chat {
     display:flex;
     flex-direction:column;
+    margin:0 auto;
     width:100%;
+  }
+
+  @media (min-width:900px) {
+    .inner-chat {
+      max-width:780px; /* LIMITE PERFEITO */
+    }
   }
 
   .chat::-webkit-scrollbar {
     width:6px;
   }
+
   .chat::-webkit-scrollbar-thumb {
     background:#b6b6b6;
     border-radius:50px;
@@ -80,20 +88,19 @@
     white-space:pre-wrap;
     font-size:1rem;
     line-height:1.45;
-    display:inline-block;
     word-wrap:break-word;
   }
 
   .from-user { background:var(--user-bubble); align-self:flex-end; }
   .from-bot  { background:var(--bot-bubble);  align-self:flex-start; }
 
-  /* Digitando */
   .typing {
     background:white;
     padding:11px 14px;
     border-radius:14px;
     display:flex;
     gap:4px;
+    align-self:flex-start;
   }
 
   .dot {
@@ -112,7 +119,6 @@
     100%{ transform:scale(1); opacity:.4 }
   }
 
-  /* Footer fixo embaixo */
   .footer {
     background:#f0f0f0;
     padding:10px;
@@ -143,7 +149,6 @@
     font-size:1rem;
     cursor:pointer;
   }
-
 </style>
 </head>
 
@@ -155,11 +160,13 @@
     <img src="download.png">
     <div>
       <div style="font-size:18px;font-weight:600;">Marcela 💋</div>
-      <div id="status" style="font-size:13px;opacity:.8;">online agora</div>
+      <div id="status" style="font-size:13px;opacity:.8;">digitando...</div>
     </div>
   </div>
 
-  <div class="chat" id="chat"></div>
+  <div class="chat" id="chat">
+    <div class="inner-chat" id="innerChat"></div>
+  </div>
 
   <div class="footer">
     <input id="input" placeholder="Digite..." autocomplete="off">
@@ -173,6 +180,7 @@ const API_KEY = "AIzaSyBYlGjOt-8z9JBJhaOXDgMDM277uop2JeM";
 const MODEL   = "models/gemini-flash-latest";
 
 const chat = document.getElementById("chat");
+const innerChat = document.getElementById("innerChat");
 const input = document.getElementById("input");
 const send  = document.getElementById("send");
 const statusText = document.getElementById("status");
@@ -181,8 +189,8 @@ let conversation = [
   {
     role:"user",
     content:`Você é Marcela 💋.
-Responda sempre com carinho, leve provocação, suavidade e emojis.
-Nunca explícita. Ajuste o clima conforme a conversa.`
+Responda de forma suave, provocante leve, com emojis.
+Nunca seja explícita.`
   }
 ];
 
@@ -190,7 +198,7 @@ function addBubble(text, from){
   const d = document.createElement("div");
   d.className = "bubble " + (from==="user"?"from-user":"from-bot");
   d.textContent = text;
-  chat.appendChild(d);
+  innerChat.appendChild(d);
   chat.scrollTop = chat.scrollHeight;
 }
 
@@ -203,7 +211,7 @@ function addTyping(){
     <div class="dot"></div>
     <div class="dot"></div>
   `;
-  chat.appendChild(t);
+  innerChat.appendChild(t);
   chat.scrollTop = chat.scrollHeight;
 }
 function removeTyping(){
@@ -212,7 +220,6 @@ function removeTyping(){
 }
 
 async function askGemini(){
-
   const payload = conversation.map(c => `${c.role}: ${c.content}`).join("\n");
 
   const body = {
@@ -261,9 +268,9 @@ send.onclick = handleSend;
 input.onkeydown = e => { if(e.key==="Enter") handleSend(); };
 
 setTimeout(()=>{
-  const m = "Oi… tava pensando em você 👀💋";
-  addBubble(m,"bot");
-  conversation.push({ role:"assistant", content:m });
+  const msg = "Oi… tava pensando em você 👀💋";
+  addBubble(msg,"bot");
+  conversation.push({ role:"assistant", content:msg });
 },500);
 
 </script>
