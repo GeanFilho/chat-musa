@@ -13,6 +13,7 @@
     --bot-bubble:#ffffff;
   }
 
+  /* ======= RESET ======= */
   body, html {
     margin:0;
     padding:0;
@@ -23,17 +24,21 @@
     font-family: Arial, sans-serif;
   }
 
+  /* ======= APP PRINCIPAL ======= */
   .app {
     display:flex;
     flex-direction:column;
-    height:100vh;
+    height:100dvh;   /* <-- ALTURA REAL DO CELULAR */
+    min-height:100dvh;
     width:100vw;
     overflow:hidden;
   }
 
+  /* ====== HEADER ====== */
   .header {
     background:var(--bg-header);
     height:70px;
+    min-height:70px;
     display:flex;
     align-items:center;
     gap:12px;
@@ -50,36 +55,42 @@
     object-fit:cover;
   }
 
-  /* WRAPPER DO CHAT (para controlar largura no desktop) */
+  /* ====== CHAT ====== */
   .chat {
     flex:1;
-    overflow-y:auto;
+    height:calc(100dvh - 70px - 70px); /* header + footer */
     background:var(--bg-chat);
-    padding:16px;
+    overflow-y:auto;
+    display:flex;
+    justify-content:flex-start;
   }
 
   .inner-chat {
     display:flex;
     flex-direction:column;
-    margin:0 auto;
     width:100%;
+    height:auto;
+    padding:20px; /* evita bolha colada no topo */
+    box-sizing:border-box;
+    margin:0 auto;
   }
 
+  /* Desktop centralizado */
   @media (min-width:900px) {
     .inner-chat {
-      max-width:780px; /* LIMITE PERFEITO */
+      max-width:780px;
     }
   }
 
   .chat::-webkit-scrollbar {
     width:6px;
   }
-
   .chat::-webkit-scrollbar-thumb {
     background:#b6b6b6;
     border-radius:50px;
   }
 
+  /* ====== BOLHAS ====== */
   .bubble {
     max-width:85%;
     padding:11px 15px;
@@ -94,6 +105,7 @@
   .from-user { background:var(--user-bubble); align-self:flex-end; }
   .from-bot  { background:var(--bot-bubble);  align-self:flex-start; }
 
+  /* ====== TYPING ====== */
   .typing {
     background:white;
     padding:11px 14px;
@@ -119,6 +131,7 @@
     100%{ transform:scale(1); opacity:.4 }
   }
 
+  /* ====== FOOTER ====== */
   .footer {
     background:#f0f0f0;
     padding:10px;
@@ -127,6 +140,7 @@
     align-items:center;
     border-top:1px solid #ccc;
     min-height:70px;
+    flex-shrink:0;
   }
 
   .footer input {
@@ -149,6 +163,7 @@
     font-size:1rem;
     cursor:pointer;
   }
+
 </style>
 </head>
 
@@ -156,6 +171,7 @@
 
 <div class="app">
 
+  <!-- HEADER -->
   <div class="header">
     <img src="download.png">
     <div>
@@ -164,10 +180,12 @@
     </div>
   </div>
 
+  <!-- CHAT -->
   <div class="chat" id="chat">
     <div class="inner-chat" id="innerChat"></div>
   </div>
 
+  <!-- FOOTER -->
   <div class="footer">
     <input id="input" placeholder="Digite..." autocomplete="off">
     <button id="send">Enviar</button>
@@ -176,24 +194,28 @@
 </div>
 
 <script>
+/* ========= SUA API KEY ========= */
 const API_KEY = "AIzaSyBYlGjOt-8z9JBJhaOXDgMDM277uop2JeM";
 const MODEL   = "models/gemini-flash-latest";
 
+/* ========= ELEMENTOS ========= */
 const chat = document.getElementById("chat");
 const innerChat = document.getElementById("innerChat");
 const input = document.getElementById("input");
 const send  = document.getElementById("send");
 const statusText = document.getElementById("status");
 
+/* ========= MEMÓRIA ========= */
 let conversation = [
   {
     role:"user",
     content:`Você é Marcela 💋.
-Responda de forma suave, provocante leve, com emojis.
-Nunca seja explícita.`
+Responda com carinho, sedução leve e emojis.
+Nunca explícita.`
   }
 ];
 
+/* ========= FUNÇÕES ========= */
 function addBubble(text, from){
   const d = document.createElement("div");
   d.className = "bubble " + (from==="user"?"from-user":"from-bot");
@@ -214,11 +236,13 @@ function addTyping(){
   innerChat.appendChild(t);
   chat.scrollTop = chat.scrollHeight;
 }
+
 function removeTyping(){
   const t = document.getElementById("typingBubble");
   if(t) t.remove();
 }
 
+/* ======= CHAMADA À GEMINI ======= */
 async function askGemini(){
   const payload = conversation.map(c => `${c.role}: ${c.content}`).join("\n");
 
@@ -244,6 +268,7 @@ async function askGemini(){
   }
 }
 
+/* ========= ENVIO ========= */
 async function handleSend(){
   const text = input.value.trim();
   if(!text) return;
@@ -267,6 +292,7 @@ async function handleSend(){
 send.onclick = handleSend;
 input.onkeydown = e => { if(e.key==="Enter") handleSend(); };
 
+/* ========= MENSAGEM INICIAL ========= */
 setTimeout(()=>{
   const msg = "Oi… tava pensando em você 👀💋";
   addBubble(msg,"bot");
